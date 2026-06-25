@@ -291,7 +291,8 @@ namespace project01
 
             foreach (Flight f in matched)
             {
-                Console.WriteLine($"From:{f.origin} | " +
+                Console.WriteLine($"Flight Id:{f.flightId} | " + 
+                                    $"From:{f.origin} | " +
                                     $"To:{f.destination} | " +
                                     $"Date:{f.departureDate} | " +
                                     $"Date:{f.departureTime} | " +
@@ -353,24 +354,144 @@ namespace project01
         //========================================================
         //07 Cancel a Booking
         public static void CancelBooking()
-        { }
+        {
+
+            Console.WriteLine("\n************* Cancel Booking ****************");
+
+            Console.Write("Enter booking ID to cancel: ");
+            int bookingId = int.Parse(Console.ReadLine());
+
+            Booking booking = context.Bookings.FirstOrDefault(b => b.bookingId == bookingId);
+            if (booking == null)
+            {
+                Console.WriteLine("Booking not found.");
+                return;
+            }
+
+            Flight flight = context.Flights.FirstOrDefault(f => f.flightId == booking.flightId);   
+
+
+            booking.status= "Cancelled";
+
+            flight.status = "Scheduled";
+            flight.availableSeats++;
+
+            Console.WriteLine($"Booking {bookingId} has been cancelled and the flight {flight.flightId} is now available again.");
+        }
+        
         //========================================================    
         //08 Depart a Flight
         public static void DepartFlight()
-        { }
+        {
+            Console.WriteLine("\n************* Depart Flight ****************");
+            
+
+        }
         //========================================================
         //09 Cancel a Flight
         public static void CancelFlight()
-        { }
+        {
+            Console.WriteLine("\n************* Cancel Flight ****************");
+            Console.Write("Enter Flight ID to cancel: ");
+            int flightId = int.Parse(Console.ReadLine());
+
+            Flight flight = context.Flights.FirstOrDefault(f => f.flightId == flightId);
+            flight.status = "Cancelled";
+            List<Booking> matched = context.Bookings.Where(b => b.flightId == flightId && b.status == "Confirmed").ToList();
+            foreach (Booking b in matched)
+            {
+            
+                b.status = "Cancelled";
+                Flight f = context.Flights.FirstOrDefault(f => f.flightId == b.flightId);
+                
+                f.availableSeats++;
+              
+
+                Pilot p = context.Pilots.FirstOrDefault(p => p.pilotId == flight.pilotId);
+                
+               p.isAvailable = true;
+                
+                Console.WriteLine("Number of cancelled booking:", matched.Count);
+
+
+            }
+
+
+                if (flight == null)
+            {
+                Console.WriteLine("Flight not found.");
+                return;
+            }
+
+            flight.status = "Cancelled";
+
+            
+            Console.WriteLine($"Flight {flightId} has been cancelled.");
+
+        }
 
         //========================================================
         //10 Passenger Booking History
         public static void PassengerBookingHistory()
-        { }
+        {
+            Console.WriteLine("\n************* Passenger Booking History ****************");
+
+            Console.Write("Enter Passenger ID: ");
+            int passengerId = int.Parse(Console.ReadLine());
+
+            Passenger passenger = context.Passengers.FirstOrDefault(p => p.passengerId == passengerId);
+
+            if (passenger == null)
+            {
+                Console.WriteLine("Passenger not found.");
+                return;
+            }
+
+            List<Booking> passengerBookings = context.Bookings.Where(b => b.passengerId == passengerId).ToList();
+
+            if (passengerBookings.Count == 0)
+            {
+                Console.WriteLine("This passenger has no bookings.");
+                return;
+            }
+
+            decimal totalSpent = 0;
+
+            Console.WriteLine($"\nPassenger: {passenger.passengerName}");
+            Console.WriteLine("==============================================================");
+
+            foreach (Booking booking in passengerBookings)
+            {
+                Flight flight = context.Flights.FirstOrDefault(f => f.flightId == booking.flightId);
+
+                if (flight != null)
+                {
+                    Console.WriteLine(
+                        $"Flight Code: {flight.flightCode} | " +
+                        $"From: {flight.origin} | " +
+                        $"To: {flight.destination} | " +
+                        $"Departure Date: {flight.departureDate} | " +
+                        $"Seat Number: {booking.seatNumber} | " +
+                        $"Price Paid: {booking.totalPrice} | " +
+                        $"Status: {booking.status}"
+                    );
+
+                    if (booking.status == "Confirmed")
+                    {
+                        totalSpent += booking.totalPrice;
+                    }
+                }
+            }
+
+            Console.WriteLine("==============================================================");
+            Console.WriteLine($"Total Amount Spent (Confirmed Bookings Only): {totalSpent}");
+
+
+        }
 
         //========================================================
         //11 Flight Revenue & Load Factor Report
-         public static void FlightRevenueAndLoadFactorReport()
+        public static void FlightRevenueAndLoadFactorReport()
         {
 
         }
